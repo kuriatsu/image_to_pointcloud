@@ -7,7 +7,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include <dynamic_reconfigure/server.h>
-#include <image2pcl/image2pclConfig.h>
+#include <image_to_pointcloud/image_to_pointcloudConfig.h>
 
 #include "geometry_msgs/Vector3.h"
 
@@ -22,15 +22,15 @@ struct image_pose
 };
 
 
-class Image2Pcl
+class ImageToPointcloud
 {
 private:
     ros::Publisher pub_image_cloud;
 
     // ros::Timer timer;
 
-    dynamic_reconfigure::Server<image2pcl::image2pclConfig> ddynamic_server;
-    dynamic_reconfigure::Server<image2pcl::image2pclConfig>::CallbackType ddynamic_server_callback;
+    dynamic_reconfigure::Server<image_to_pointcloud::image_to_pointcloudConfig> ddynamic_server;
+    dynamic_reconfigure::Server<image_to_pointcloud::image_to_pointcloudConfig>::CallbackType ddynamic_server_callback;
 
     std::string m_image_name;
     cv::Mat m_cv_image;
@@ -39,11 +39,11 @@ private:
     bool m_synchronize = false;
 
 public:
-    Image2Pcl();
-    ~Image2Pcl();
+    ImageToPointcloud();
+    ~ImageToPointcloud();
 
 private:
-    void ddynamicCb(image2pcl::image2pclConfig &config, uint32_t level);
+    void ddynamicCb(image_to_pointcloud::image_to_pointcloudConfig &config, uint32_t level);
     void makeImageCloud();
     // void timerCb(const ros::TimerEVent&);
     void ddynamicUpdate();
@@ -51,22 +51,22 @@ private:
 };
 
 
-Image2Pcl::Image2Pcl()
+ImageToPointcloud::ImageToPointcloud()
 {
     ros::NodeHandle n;
 
-    ddynamic_server_callback = boost::bind(&Image2Pcl::ddynamicCb, this, _1, _2);
+    ddynamic_server_callback = boost::bind(&ImageToPointcloud::ddynamicCb, this, _1, _2);
     ddynamic_server.setCallback(ddynamic_server_callback);
 
     pub_image_cloud = n.advertise<pcl::PointCloud<pcl::PointXYZRGB> >("/image_cloud", 5);
 }
 
-Image2Pcl::~Image2Pcl()
+ImageToPointcloud::~ImageToPointcloud()
 {
     ddynamicInit();
 }
 
-void Image2Pcl::ddynamicCb(image2pcl::image2pclConfig &config, uint32_t level)
+void ImageToPointcloud::ddynamicCb(image_to_pointcloud::image_to_pointcloudConfig &config, uint32_t level)
 {
     std::string image = config.image;
     m_image_res = std::stof(config.image_res);
@@ -94,9 +94,9 @@ void Image2Pcl::ddynamicCb(image2pcl::image2pclConfig &config, uint32_t level)
 }
 
 
-void Image2Pcl::ddynamicUpdate()
+void ImageToPointcloud::ddynamicUpdate()
 {
-    image2pcl::image2pclConfig config;
+    image_to_pointcloud::image_to_pointcloudConfig config;
     config.image_res = std::to_string(m_image_res);
     config.image_x = std::to_string(m_image_pose.x);
     config.image_y = std::to_string(m_image_pose.y);
@@ -111,9 +111,9 @@ void Image2Pcl::ddynamicUpdate()
 }
 
 
-void Image2Pcl::ddynamicInit()
+void ImageToPointcloud::ddynamicInit()
 {
-    image2pcl::image2pclConfig config;
+    image_to_pointcloud::image_to_pointcloudConfig config;
     config.image_res = std::to_string(0.0);
     config.image_x = std::to_string(0.0);
     config.image_y = std::to_string(0.0);
@@ -126,7 +126,7 @@ void Image2Pcl::ddynamicInit()
     ddynamic_server.updateConfig(config);
 }
 
-void Image2Pcl::makeImageCloud()
+void ImageToPointcloud::makeImageCloud()
 {
     pcl::PointCloud<pcl::PointXYZRGB> image_cloud;
     int height = m_cv_image.rows;
@@ -188,9 +188,9 @@ void Image2Pcl::makeImageCloud()
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "image2pcl_node");
+    ros::init(argc, argv, "image_to_pointcloud_node");
 
-    Image2Pcl image_to_pcl;
+    ImageToPointcloud image_to_pointcloud;
 
     ros::spin();
 
